@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Social Stories</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Atkinson+Hyperlegible:wght@400;700&family=Noto+Nastaliq+Urdu:wght@400;600;700&family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F3F7F1;
+    --card:#FFFFFF;
+    --ink:#2E3A38;
+    --muted:#72827E;
+    --primary:#4F8C7C;
+    --primary-dark:#3B6B5E;
+    --yellow:#F2C572;
+    --plum:#8A6FA3;
+    --plum-dark:#6F5590;
+    --blush:#E8A9A0;
+    --line:#DCE6E1;
+    --radius:22px;
+    --shadow: 0 10px 26px rgba(46,58,56,0.09), 0 2px 6px rgba(46,58,56,0.06);
+    --shadow-lg: 0 20px 44px rgba(46,58,56,0.14), 0 4px 10px rgba(46,58,56,0.07);
+    --font-heading:'Baloo 2', sans-serif;
+    --font-body:'Atkinson Hyperlegible', sans-serif;
+  }
+  html[lang="ur"]{
+    --font-heading:'Noto Nastaliq Urdu', serif;
+    --font-body:'Noto Nastaliq Urdu', serif;
+  }
+  html[lang="sd"]{
+    --font-heading:'Noto Sans Arabic', serif;
+    --font-body:'Noto Sans Arabic', serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(620px circle at 8% 6%, rgba(143,185,168,0.28), transparent 60%),
+      radial-gradient(520px circle at 92% 12%, rgba(242,197,114,0.24), transparent 55%),
+      radial-gradient(680px circle at 50% 105%, rgba(138,111,163,0.16), transparent 60%),
+      var(--bg);
+    background-attachment:fixed;
+    color:var(--ink);
+    font-family:var(--font-body);
+    min-height:100vh;
+    padding:28px 16px 60px;
+    transition:font-family .1s;
+  }
+  html[lang="ur"] .story-text, html[lang="sd"] .story-text{ line-height:2.05; }
+  html[lang="ur"] .story-text.big, html[lang="sd"] .story-text.big{ line-height:2.15; }
+  html[lang="ur"] header.top p, html[lang="sd"] header.top p{ line-height:2; }
+  .wrap{max-width:760px;margin:0 auto;}
+  h1,h2,h3{font-family:var(--font-heading);margin:0;}
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:var(--font-heading);font-weight:700;font-size:13px;
+    letter-spacing:.04em;color:var(--primary-dark);
+    background:#E4F0EA;border-radius:999px;padding:6px 14px;
+  }
+
+  /* ---- hero card ---- */
+  .hero-card{
+    background:rgba(255,255,255,0.68);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+    border:1px solid rgba(255,255,255,0.85);
+    border-radius:30px;
+    padding:26px 22px 24px;
+    box-shadow:var(--shadow);
+    text-align:center;
+    margin-bottom:24px;
+  }
+  header.top{text-align:center;margin-top:14px;}
+  header.top h1{font-size:32px;color:var(--ink);margin:12px 0 8px;letter-spacing:-0.01em;}
+  header.top p{color:var(--muted);font-size:16px;max-width:480px;margin:0 auto;line-height:1.55;}
+
+  /* ---- global language switch (sliding segmented control) ---- */
+  .lang-toggle{
+    position:relative;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:0;
+    background:#fff;
+    border:1.5px solid var(--line);
+    border-radius:16px;
+    padding:4px;
+    max-width:320px;
+    margin:0 auto;
+    box-shadow:0 4px 12px rgba(46,58,56,0.07);
+  }
+  .lang-highlight{
+    position:absolute;
+    top:4px;bottom:4px;left:4px;
+    width:calc(33.333% - 4px);
+    background:linear-gradient(135deg, var(--primary), var(--primary-dark));
+    border-radius:12px;
+    transition:transform .3s cubic-bezier(.4,0,.2,1);
+    z-index:0;
+    box-shadow:0 4px 10px rgba(79,140,124,0.35);
+  }
+  .lang-opt{
+    position:relative;z-index:1;
+    text-align:center;padding:9px 4px;border-radius:12px;
+    cursor:pointer;font-family:var(--font-heading);font-weight:700;font-size:14px;
+    color:var(--muted);background:transparent;user-select:none;
+    transition:color .2s;
+  }
+  .lang-opt.selected{color:#fff;}
+
+  /* ---- card grid ---- */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(220px,1fr));
+    gap:18px;
+    margin-top:26px;
+  }
+  @keyframes fadeSlideIn{
+    from{opacity:0; transform:translateY(10px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+  .grid-view:not(.hidden){animation:fadeSlideIn .4s ease;}
+  .viewer.active{animation:fadeSlideIn .35s ease;}
+  .form-view.active{animation:fadeSlideIn .35s ease;}
+
+  .story-card{
+    background:var(--card);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:16px;
+    cursor:pointer;
+    border:1px solid var(--line);
+    position:relative;
+    transition:transform .22s cubic-bezier(.4,0,.2,1), box-shadow .22s cubic-bezier(.4,0,.2,1);
+    text-align:left;
+  }
+  .story-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);}
+  .story-card .thumb{
+    width:100%;aspect-ratio:1/0.82;border-radius:16px;overflow:hidden;
+    background:#fff;
+    display:flex;align-items:center;justify-content:center;
+    border:1.5px dashed var(--line);
+  }
+  .story-card h3{font-size:19px;margin-top:12px;color:var(--ink);}
+  .story-card .sub{font-size:13.5px;color:var(--muted);margin-top:3px;}
+  .story-card .steps-tag{
+    display:inline-block;margin-top:10px;font-size:12px;font-weight:700;
+    color:var(--primary-dark);background:#E4F0EA;border-radius:999px;padding:4px 10px;
+    font-family:var(--font-heading);
+  }
+  .story-card.custom-new{
+    border-style:dashed;border-color:var(--plum);
+    background:linear-gradient(180deg,#FFFFFF, #FAF7FC);
+  }
+  .story-card.custom-new .steps-tag{background:#EFE7F5;color:var(--plum);}
+  .del-btn{
+    position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:50%;
+    border:none;background:#fff;color:var(--muted);box-shadow:var(--shadow);
+    cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;
+    transition:color .15s, transform .15s;
+  }
+  .del-btn:hover{color:var(--blush);transform:scale(1.08);}
+  .lang-pill{
+    position:absolute;top:10px;left:10px;background:#EEF3F0;color:var(--primary-dark);
+    font-family:var(--font-heading);font-weight:700;font-size:11px;padding:3px 9px;border-radius:999px;
+  }
+
+  /* ---- story viewer ---- */
+  .viewer{display:none;}
+  .viewer.active{display:block;}
+  .grid-view.hidden, .form-view{display:none;}
+  .form-view.active{display:block;}
+
+  .viewer-top{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:18px;gap:10px;flex-wrap:wrap;
+  }
+  .back-btn{
+    display:inline-flex;align-items:center;gap:6px;
+    background:var(--card);border:1px solid var(--line);border-radius:999px;
+    padding:9px 16px;font-family:var(--font-heading);font-weight:700;font-size:14px;
+    color:var(--ink);cursor:pointer;box-shadow:var(--shadow);
+    transition:transform .15s, box-shadow .15s;
+  }
+  .back-btn:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+  .viewer-title{font-family:var(--font-heading);font-weight:700;font-size:20px;text-align:center;flex:1;}
+  .textsize-btn{
+    background:var(--card);border:1px solid var(--line);border-radius:999px;
+    padding:9px 14px;font-family:var(--font-heading);font-weight:700;font-size:14px;
+    cursor:pointer;box-shadow:var(--shadow);color:var(--primary-dark);
+    transition:transform .15s, box-shadow .15s;
+  }
+  .textsize-btn:hover{transform:translateY(-2px);}
+  .textsize-btn.active{background:linear-gradient(135deg, var(--primary), var(--primary-dark));color:#fff;border-color:var(--primary);}
+
+  .card-page{
+    background:var(--card);
+    border-radius:28px;
+    box-shadow:var(--shadow-lg);
+    padding:22px;
+    position:relative;
+    border:1.5px dashed var(--line);
+  }
+  .scene{
+    width:100%;
+    max-width:280px;
+    margin:0 auto;
+    display:block;
+  }
+  .story-text{
+    font-size:19px;line-height:1.65;text-align:center;
+    max-width:480px;margin:14px auto 4px;color:var(--ink);
+    min-height:80px;display:flex;align-items:center;justify-content:center;
+  }
+  .story-text.big{font-size:24px;line-height:1.7;}
+
+  .dots{display:flex;justify-content:center;gap:8px;margin:16px 0 4px;flex-wrap:wrap;}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--line);cursor:pointer;transition:.2s;}
+  .dot.active{background:var(--primary);width:24px;border-radius:6px;box-shadow:0 2px 8px rgba(79,140,124,0.5);}
+
+  .nav-row{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:16px;}
+  .nav-btn{
+    width:52px;height:52px;border-radius:50%;border:none;
+    background:linear-gradient(135deg, var(--primary), var(--primary-dark));color:#fff;font-size:20px;cursor:pointer;
+    box-shadow:0 8px 18px rgba(79,140,124,0.4);
+    display:flex;align-items:center;justify-content:center;
+    transition:transform .15s, box-shadow .15s;
+  }
+  .nav-btn:hover:not(:disabled){transform:translateY(-2px) scale(1.04);}
+  .nav-btn:active:not(:disabled){transform:scale(0.96);}
+  .nav-btn:disabled{background:#CBD6D2;box-shadow:none;cursor:default;}
+  .nav-btn.done{background:linear-gradient(135deg, var(--yellow), #E0A93E);color:#4A3A12;box-shadow:0 8px 18px rgba(242,197,114,0.55);}
+
+  /* ---- custom form ---- */
+  .form-card{
+    background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow-lg);
+    padding:26px;border:1.5px dashed var(--line);
+  }
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-family:var(--font-heading);font-weight:700;font-size:14.5px;margin-bottom:6px;color:var(--ink);}
+  .field textarea, .field input{
+    width:100%;border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;
+    font-family:var(--font-body);font-size:15.5px;color:var(--ink);
+    background:#FBFDFC;transition:border-color .15s, box-shadow .15s;
+  }
+  .field textarea:focus, .field input:focus{
+    outline:none;border-color:var(--primary);box-shadow:0 0 0 4px rgba(79,140,124,0.14);
+  }
+  .field textarea{min-height:88px;resize:vertical;}
+  .field .hint{font-size:12.5px;color:var(--muted);margin-top:5px;}
+  .gen-lang-hint{
+    font-size:13px;color:var(--primary-dark);background:#E4F0EA;border-radius:12px;
+    padding:9px 12px;margin-bottom:14px;font-family:var(--font-heading);font-weight:700;text-align:center;
+  }
+  .gen-btn{
+    width:100%;padding:15px;border:none;border-radius:16px;
+    background:linear-gradient(135deg, var(--plum), var(--plum-dark));
+    color:#fff;font-family:var(--font-heading);font-weight:700;font-size:17px;cursor:pointer;
+    box-shadow:0 10px 22px rgba(138,111,163,0.4);
+    transition:transform .15s, box-shadow .15s;
+  }
+  .gen-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 14px 26px rgba(138,111,163,0.48);}
+  .gen-btn:active:not(:disabled){transform:scale(0.98);}
+  .gen-btn:disabled{background:#CBB;opacity:.6;cursor:default;box-shadow:none;}
+  .status-box{
+    margin-top:14px;text-align:center;font-size:14.5px;color:var(--muted);
+    display:none;align-items:center;justify-content:center;gap:10px;
+  }
+  .status-box.show{display:flex;}
+  .spinner{
+    width:16px;height:16px;border:2.5px solid var(--line);border-top-color:var(--plum);
+    border-radius:50%;animation:spin .8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .error-box{
+    display:none;margin-top:14px;background:#FBEDEA;border:1px solid #EFC9C0;color:#8A4B3F;
+    padding:12px 14px;border-radius:12px;font-size:14px;
+  }
+  .error-box.show{display:block;}
+
+  footer{text-align:center;margin-top:40px;color:var(--muted);font-size:12.5px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero-card">
+    <div class="lang-toggle" id="langToggleTop">
+      <div class="lang-highlight" id="langHighlight"></div>
+      <div class="lang-opt" id="langOptUr" onclick="setUiLang('ur')" dir="auto">اردو</div>
+      <div class="lang-opt" id="langOptSd" onclick="setUiLang('sd')" dir="auto">سنڌي</div>
+      <div class="lang-opt" id="langOptEn" onclick="setUiLang('en')">English</div>
+    </div>
+    <header class="top">
+      <span class="eyebrow">🌿 Social Stories</span>
+      <h1 id="mainTitle" dir="auto"></h1>
+      <p id="mainSub" dir="auto"></p>
+    </header>
+  </div>
+
+  <!-- ============ GRID VIEW ============ -->
+  <div class="grid-view" id="gridView">
+    <div class="grid" id="storyGrid"></div>
+  </div>
+
+  <!-- ============ CUSTOM FORM VIEW ============ -->
+  <div class="form-view" id="formView">
+    <div class="viewer-top">
+      <button class="back-btn" id="backBtnForm" onclick="showGrid()" dir="auto"></button>
+      <div class="viewer-title" id="formTitle" dir="auto"></div>
+      <div style="width:90px"></div>
+    </div>
+    <div class="form-card">
+      <div class="field">
+        <label id="scenarioLabel" dir="auto"></label>
+        <textarea id="scenarioInput" dir="auto"></textarea>
+        <div class="hint" id="scenarioHint" dir="auto"></div>
+      </div>
+      <div class="field">
+        <label id="nameLabel" dir="auto"></label>
+        <input type="text" id="nameInput" dir="auto">
+      </div>
+      <div class="gen-lang-hint" id="genLangHint" dir="auto"></div>
+      <button class="gen-btn" id="genBtn" onclick="generateStory()" dir="auto"></button>
+      <div class="status-box" id="statusBox"><div class="spinner"></div><span id="statusText" dir="auto"></span></div>
+      <div class="error-box" id="errorBox" dir="auto"></div>
+    </div>
+  </div>
+
+  <!-- ============ STORY VIEWER ============ -->
+  <div class="viewer" id="viewer">
+    <div class="viewer-top">
+      <button class="back-btn" id="backBtnViewer" onclick="showGrid()" dir="auto"></button>
+      <div class="viewer-title" id="viewerTitle" dir="auto">Title</div>
+      <button class="textsize-btn" id="textSizeBtn" onclick="toggleTextSize()" dir="auto"></button>
+    </div>
+    <div class="card-page">
+      <div id="sceneHolder"></div>
+      <div class="story-text" id="storyText" dir="auto"></div>
+      <div class="dots" id="dots"></div>
+      <div class="nav-row">
+        <button class="nav-btn" id="prevBtn" onclick="stepStory(-1)">‹</button>
+        <button class="nav-btn" id="nextBtn" onclick="stepStory(1)">›</button>
+      </div>
+    </div>
+  </div>
+
+  <footer id="footerText" dir="auto"></footer>
+</div>
+
+<script>
+/* ================= TRANSLATIONS ================= */
+const T = {
+  ur: {
+    title:"چھوٹی، پیاری مصور کہانیاں",
+    subtitle:"نئی جگہ یا نئے حالات کو سمجھنے میں مدد کے لیے — آہستہ آہستہ، ایک صفحہ ایک وقت میں۔",
+    addTitle:"نیا منظرنامہ بنائیں",
+    addSub:"اپنی خود کی کہانی لکھوائیں",
+    addTag:"✨ AI سے بنائیں",
+    yourCustomStory:"آپ کی بنائی ہوئی کہانی",
+    pagesWord:"صفحے",
+    backBtn:"واپس",
+    textSizeOff:"بڑا متن",
+    textSizeOn:"عام متن",
+    formTitle:"نیا منظرنامہ",
+    scenarioLabel:"منظرنامہ کیا ہے؟",
+    scenarioPlaceholder:"مثلاً: پہلی بار جہاز میں سفر کرنا، بال کٹوانا، یا ڈینٹسٹ کے پاس جانا...",
+    scenarioHint:"آپ جتنی تفصیل لکھیں گے، کہانی اتنی ہی مفید ہوگی۔",
+    nameLabel:"بچے کا نام (اختیاری)",
+    namePlaceholder:"مثلاً: عائشہ، زید...",
+    genLangHint:"کہانی اردو میں لکھی جائے گی۔",
+    genBtn:"کہانی بنائیں ✨",
+    statusText:"کہانی لکھی جا رہی ہے۔۔۔",
+    errorText:"کوئی مسئلہ ہو گیا۔ براہِ کرم دوبارہ کوشش کریں۔",
+    footerText:"ہر کہانی نرمی اور سکون سے لکھی گئی ہے — بچے کو اپنی رفتار سے پڑھنے دیں۔ 💚",
+    emptyScenarioAlert:"پہلے منظرنامہ لکھیں۔"
+  },
+  sd: {
+    title:"ننڍيون، پياريون مصور ڪهاڻيون",
+    subtitle:"نئين جڳهه يا نئين حالت کي سمجهڻ ۾ مدد لاءِ — آهستي آهستي، هڪ صفحو هڪ دفعي ۾۔",
+    addTitle:"نئون منظرنامو ٺاهيو",
+    addSub:"پنهنجي پاڻ ڪهاڻي لکرايو",
+    addTag:"✨ AI سان ٺهيل",
+    yourCustomStory:"توهان جي ٺاهيل ڪهاڻي",
+    pagesWord:"صفحا",
+    backBtn:"واپس",
+    textSizeOff:"وڏو اکر",
+    textSizeOn:"عام اکر",
+    formTitle:"نئون منظرنامو",
+    scenarioLabel:"منظرنامو ڇا آهي؟",
+    scenarioPlaceholder:"مثال طور: پهرين ڀيري جهاز ۾ سفر ڪرڻ، وار ڪٽرائڻ، يا ڊينٽسٽ وٽ وڃڻ...",
+    scenarioHint:"توهان جيترو تفصيل لکندؤ، ڪهاڻي اوترو ئي مفيد ٿيندي۔",
+    nameLabel:"ٻار جو نالو (اختياري)",
+    namePlaceholder:"مثال طور: علي، سارا...",
+    genLangHint:"ڪهاڻي سنڌي ۾ لکجي ويندي۔",
+    genBtn:"ڪهاڻي ٺاهيو ✨",
+    statusText:"ڪهاڻي لکجي رهي آهي۔۔۔",
+    errorText:"ڪو مسئلو ٿي ويو۔ مهرباني ڪري وري ڪوشش ڪريو۔",
+    footerText:"هر ڪهاڻي نرميءَ ۽ سڪون سان لکي وئي آهي — ٻار کي پنهنجي رفتار سان پڙهڻ ڏيو۔ 💚",
+    emptyScenarioAlert:"پهريان منظرنامو لکو۔"
+  },
+  en: {
+    title:"Short, sweet illustrated stories",
+    subtitle:"To help understand a new place or scenario — gently, one page at a time.",
+    addTitle:"Create a New Scenario",
+    addSub:"Write your own story",
+    addTag:"✨ Made with AI",
+    yourCustomStory:"Your custom story",
+    pagesWord:"pages",
+    backBtn:"← Back",
+    textSizeOff:"Bigger Text",
+    textSizeOn:"Normal Text",
+    formTitle:"New Scenario",
+    scenarioLabel:"What's the scenario?",
+    scenarioPlaceholder:"e.g. flying on a plane for the first time, getting a haircut, or going to the dentist...",
+    scenarioHint:"The more specific you are, the more useful the story will be.",
+    nameLabel:"Child's name (optional)",
+    namePlaceholder:"e.g. Ayaan, Zara...",
+    genLangHint:"The story will be written in English.",
+    genBtn:"Create Story ✨",
+    statusText:"Writing the story...",
+    errorText:"Something went wrong. Please try again.",
+    footerText:"Every story is written gently and calmly — let your child read at their own pace. 💚",
+    emptyScenarioAlert:"Please write a scenario first."
+  }
+};
+
+const LANG_INDEX = {ur:0, sd:1, en:2};
+const LANG_NAME = {ur:'Urdu', sd:'Sindhi', en:'English'};
+
+/* ================= CHARACTER / ICON RENDERER ================= */
+const INK = "#2E3A38";
+const SHIRT = "#8FB9A8";
+const SKIN = "#FBD9B0";
+const HAIR = "#5B4636";
+const PANTS = "#3E4B49";
+
+const POSES = {
+  neutral:   {L:[52,176], R:[148,176]},
+  waving:    {L:[52,176], R:[168,82]},
+  sitting:   {L:[48,166], R:[152,166]},
+  walking:   {L:[44,164], R:[158,146]},
+  listening: {L:[52,176], R:[134,70]},
+  worried:   {L:[92,142], R:[108,142]},
+  breathing: {L:[16,116], R:[184,116]},
+  happy:     {L:[42,54],  R:[158,54]},
+  pointing:  {L:[52,176], R:[196,118]}
+};
+
+function mouthPath(mood){
+  const cx=100, cy=66;
+  if(mood==='happy') return `<path d="M${cx-15},${cy+11} Q${cx},${cy+25} ${cx+15},${cy+11}" stroke="${INK}" stroke-width="3.4" fill="none" stroke-linecap="round"/>`;
+  if(mood==='worried') return `<path d="M${cx-9},${cy+17} Q${cx-4},${cy+11} ${cx},${cy+17} Q${cx+4},${cy+23} ${cx+9},${cy+17}" stroke="${INK}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+  return `<path d="M${cx-10},${cy+14} Q${cx},${cy+19} ${cx+10},${cy+14}" stroke="${INK}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+}
+
+function YELLOW_HEX(){return '#F2C572';}
+function BLUSH_HEX(){return '#E8A9A0';}
+function PRIMARY_HEX(){return '#4F8C7C';}
+
+function starShape(cx,cy,rOuter,rInner,points,fill){
+  let pts=[];
+  for(let i=0;i<points*2;i++){
+    const r = i%2===0? rOuter: rInner;
+    const a = (Math.PI/points)*i - Math.PI/2;
+    pts.push(`${(cx+r*Math.cos(a)).toFixed(1)},${(cy+r*Math.sin(a)).toFixed(1)}`);
+  }
+  return `<polygon points="${pts.join(' ')}" fill="${fill}"/>`;
+}
+
+function propIcon(type){
+  const c = '<g transform="translate(150,34) scale(0.72)">';
+  const bg = `<circle cx="0" cy="0" r="22" fill="#fff" stroke="${INK}" stroke-width="1.4" opacity="0.9"/>`;
+  let inner = '';
+  switch(type){
+    case 'clock':
+      inner = `<circle cx="0" cy="0" r="14" fill="none" stroke="${INK}" stroke-width="2"/><line x1="0" y1="0" x2="0" y2="-8" stroke="${INK}" stroke-width="2" stroke-linecap="round"/><line x1="0" y1="0" x2="6" y2="2" stroke="${INK}" stroke-width="2" stroke-linecap="round"/>`;
+      break;
+    case 'chair':
+      inner = `<rect x="-10" y="-4" width="20" height="4" rx="2" fill="${SHIRT}"/><rect x="-10" y="-16" width="4" height="14" rx="2" fill="${SHIRT}"/><line x1="-8" y1="0" x2="-8" y2="14" stroke="${INK}" stroke-width="2.4" stroke-linecap="round"/><line x1="8" y1="0" x2="8" y2="14" stroke="${INK}" stroke-width="2.4" stroke-linecap="round"/>`;
+      break;
+    case 'door':
+      inner = `<rect x="-9" y="-15" width="18" height="30" rx="2" fill="none" stroke="${INK}" stroke-width="2"/><circle cx="4" cy="1" r="1.6" fill="${INK}"/>`;
+      break;
+    case 'bell':
+      inner = `<path d="M-11,7 a11,11 0 0 1 22,0 v3 h-22 z" fill="${YELLOW_HEX()}" stroke="${INK}" stroke-width="1.6"/><rect x="-2" y="-13" width="4" height="6" rx="2" fill="${INK}"/><circle cx="0" cy="13" r="2.4" fill="${INK}"/>`;
+      break;
+    case 'book':
+      inner = `<rect x="-14" y="-10" width="13" height="20" rx="2" fill="#fff" stroke="${INK}" stroke-width="1.8"/><rect x="1" y="-10" width="13" height="20" rx="2" fill="#fff" stroke="${INK}" stroke-width="1.8"/><line x1="0" y1="-9" x2="0" y2="9" stroke="${INK}" stroke-width="1.6"/>`;
+      break;
+    case 'heart':
+      inner = `<path d="M0,10 C-13,0 -13,-11 -3,-11 C0,-11 0,-8 0,-8 C0,-8 0,-11 3,-11 C13,-11 13,0 0,10 Z" fill="${BLUSH_HEX()}"/>`;
+      break;
+    case 'badge':
+      inner = starShape(0,-1,10,4.5,5,YELLOW_HEX());
+      break;
+    case 'star':
+      inner = starShape(0,0,12,5,5,YELLOW_HEX());
+      break;
+    case 'check':
+      inner = `<circle cx="0" cy="0" r="13" fill="${PRIMARY_HEX()}" opacity="0.15"/><path d="M-7,0 L-2,6 L8,-7" stroke="${PRIMARY_HEX()}" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+      break;
+    default: return '';
+  }
+  return c + bg + inner + '</g>';
+}
+
+function backdropColor(mood){
+  if(mood==='happy') return '#FBF1DC';
+  if(mood==='worried') return '#F8EDEA';
+  return '#E6F1EE';
+}
+
+function characterSVG(step){
+  const pose = POSES[step.pose] || POSES.neutral;
+  const mood = step.mood || 'neutral';
+  const bd = backdropColor(mood);
+  const legOffset = (step.pose==='walking') ? 8 : 0;
+  const legH = (step.pose==='sitting') ? 24 : 40;
+  const cheeks = mood==='happy' ? `<circle cx="87" cy="76" r="6" fill="#E8A9A0" opacity="0.55"/><circle cx="113" cy="76" r="6" fill="#E8A9A0" opacity="0.55"/>` : '';
+
+  return `
+  <svg class="scene" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="100" cy="112" r="98" fill="${bd}"/>
+    <ellipse cx="100" cy="205" rx="46" ry="7" fill="#000" opacity="0.06"/>
+    ${propIcon(step.prop)}
+    <rect x="76" y="${170-legOffset}" width="14" height="${legH}" rx="7" fill="${PANTS}"/>
+    <rect x="110" y="170" width="14" height="${legH}" rx="7" fill="${PANTS}"/>
+    <ellipse cx="83" cy="${170-legOffset+legH+2}" rx="11" ry="5" fill="#2A3230"/>
+    <ellipse cx="117" cy="${170+legH+2}" rx="11" ry="5" fill="#2A3230"/>
+    <line x1="76" y1="114" x2="${pose.L[0]}" y2="${pose.L[1]}" stroke="${SHIRT}" stroke-width="20" stroke-linecap="round"/>
+    <line x1="124" y1="114" x2="${pose.R[0]}" y2="${pose.R[1]}" stroke="${SHIRT}" stroke-width="20" stroke-linecap="round"/>
+    <circle cx="${pose.L[0]}" cy="${pose.L[1]}" r="11" fill="${SKIN}"/>
+    <circle cx="${pose.R[0]}" cy="${pose.R[1]}" r="11" fill="${SKIN}"/>
+    <rect x="62" y="96" width="76" height="86" rx="38" fill="${SHIRT}"/>
+    <circle cx="100" cy="66" r="37" fill="${SKIN}"/>
+    <path d="M63,66 A37,37 0 0 1 137,66 L137,46 A37,23 0 0 0 63,46 Z" fill="${HAIR}"/>
+    <circle cx="87" cy="64" r="3.6" fill="${INK}"/>
+    <circle cx="113" cy="64" r="3.6" fill="${INK}"/>
+    ${cheeks}
+    ${mouthPath(mood)}
+  </svg>`;
+}
+
+/* ================= PRESET STORIES (trilingual) ================= */
+const PRESETS = {
+  doctor: {
+    title:{ur:"ڈاکٹر کے پاس جانا", sd:"ڊاڪٽر وٽ وڃڻ", en:"Going to the Doctor"},
+    sub:{ur:"چیک اپ کے لیے جانا", sd:"چيڪ اپ لاءِ وڃڻ", en:"Going for a check-up"},
+    steps:[
+      {ur:"آج ڈاکٹر کے پاس جانا ہے۔ یہ بالکل ٹھیک ہے — بہت سے بچے ڈاکٹر کے پاس جاتے ہیں۔",
+       sd:"اڄ ڊاڪٽر وٽ وڃڻو آهي۔ اهو بلڪل ٺيڪ آهي — گھڻا ٻار ڊاڪٽر وٽ ويندا آهن۔",
+       en:"Today I'm going to the doctor. That's okay — lots of children go to the doctor.",
+       pose:'neutral', mood:'neutral', prop:'none'},
+      {ur:"انتظار گاہ میں کرسی پر بیٹھنا ہے اور اپنی باری کا انتظار کرنا ہے۔",
+       sd:"انتظار واري ڪمري ۾ ڪرسي تي ويهڻو آهي ۽ پنهنجي واري جو انتظار ڪرڻو آهي۔",
+       en:"In the waiting room, I'll sit on a chair and wait for my turn.",
+       pose:'sitting', mood:'neutral', prop:'chair'},
+      {ur:"ڈاکٹر پیار سے بات کریں گے، اور دل، سانس اور وزن چیک کریں گے۔ یہ صحت مند رہنے کے لیے ہوتا ہے۔",
+       sd:"ڊاڪٽر پيار سان ڳالهائيندا، ۽ دل، ساهه ۽ وزن چيڪ ڪندا۔ اهو صحت مند رهڻ لاءِ ٿيندو آهي۔",
+       en:"The doctor will talk to me kindly, and check my heart, breathing, and weight. This helps keep me healthy.",
+       pose:'listening', mood:'neutral', prop:'heart'},
+      {ur:"تھوڑا سا ڈر یا عجیب سا محسوس ہونا بالکل نارمل ہے۔ بہت سے بچے ایسا محسوس کرتے ہیں۔",
+       sd:"ٿورو ڊپ يا عجيب محسوس ٿيڻ بلڪل نارمل آهي۔ گھڻا ٻار ائين محسوس ڪندا آهن۔",
+       en:"Feeling a little scared or strange is completely normal. Lots of children feel this way.",
+       pose:'worried', mood:'worried', prop:'none'},
+      {ur:"گہری سانس لینا — اندر... باہر... — پرسکون رہنے میں مدد کرتا ہے۔",
+       sd:"ڊگهو ساهه کڻڻ — اندر... ٻاهر... — پرسڪون رهڻ ۾ مدد ڪري ٿو۔",
+       en:"Taking a deep breath — in... out... — helps me feel calm.",
+       pose:'breathing', mood:'neutral', prop:'none'},
+      {ur:"چیک اپ ختم ہونے کے بعد بہت بہادر محسوس ہوگا! خود پر فخر ہونا چاہیے۔",
+       sd:"چيڪ اپ ختم ٿيڻ کان پوءِ تمام بهادر محسوس ٿيندو! پاڻ تي فخر ڪرڻ گھرجي۔",
+       en:"After the check-up is done, I'll feel really brave! I can be proud of myself.",
+       pose:'happy', mood:'happy', prop:'star'}
+    ]
+  },
+  teacher: {
+    title:{ur:"نئے ٹیچر سے ملنا", sd:"نئين ٽيچر سان ملڻ", en:"Meeting a New Teacher"},
+    sub:{ur:"نئی کلاس میں پہلا دن", sd:"نئين ڪلاس ۾ پهريون ڏينهن", en:"First day in a new class"},
+    steps:[
+      {ur:"اس سال ایک نیا ٹیچر ملے گا۔ نئے لوگوں سے ملنا کبھی کبھی مشکل لگتا ہے، اور یہ ٹھیک ہے۔",
+       sd:"هن سال هڪ نئين ٽيچر سان ملڻو آهي۔ نون ماڻهن سان ملڻ ڪڏهن ڪڏهن مشڪل لڳي ٿو، ۽ اهو ٺيڪ آهي۔",
+       en:"This year I'm meeting a new teacher. Meeting new people can feel hard sometimes, and that's okay.",
+       pose:'neutral', mood:'neutral', prop:'none'},
+      {ur:"کلاس میں داخل ہوتے وقت، ٹیچر مسکرا کر خوش آمدید کہیں گے۔",
+       sd:"ڪلاس ۾ داخل ٿيندي، ٽيچر مرڪي خوش آمديد چوندا۔",
+       en:"When I walk into the classroom, my teacher will smile and welcome me.",
+       pose:'walking', mood:'neutral', prop:'door'},
+      {ur:"ہم ایک دوسرے کو اپنا نام بتا سکتے ہیں۔ 'ہیلو، میرا نام ___ ہے' کہنا ایک اچھا طریقہ ہے۔",
+       sd:"اسان هڪ ٻئي کي پنهنجو نالو ٻڌائي سگهون ٿا۔ 'هيلو، منهنجو نالو ___ آهي' چوڻ هڪ سٺو طريقو آهي۔",
+       en:"We can tell each other our names. Saying 'Hello, my name is ___' is a good way to start.",
+       pose:'waving', mood:'happy', prop:'heart'},
+      {ur:"ٹیچر کلاس کے اصول بتائیں گے۔ غور سے سننا مددگار ہوتا ہے۔",
+       sd:"ٽيچر ڪلاس جا اصول ٻڌائيندا۔ ڌيان سان ٻڌڻ مددگار ٿيندو آهي۔",
+       en:"My teacher will explain the classroom rules. Listening carefully helps.",
+       pose:'listening', mood:'neutral', prop:'book'},
+      {ur:"اگر کچھ سمجھ نہ آئے، تو ہاتھ اٹھا کر پوچھنا بالکل ٹھیک ہے۔",
+       sd:"جيڪڏهن ڪجهه سمجهه ۾ نه اچي، ته هٿ مٿي ڪري پڇڻ بلڪل ٺيڪ آهي۔",
+       en:"If something is confusing, it's okay to raise my hand and ask.",
+       pose:'worried', mood:'worried', prop:'none'},
+      {ur:"آہستہ آہستہ نیا ٹیچر ایک جانا پہچانا اور پیارا انسان بن جائے گا۔",
+       sd:"آهستي آهستي نئين ٽيچر هڪ سڃاتل ۽ پياري شخصيت بڻجي ويندا۔",
+       en:"Little by little, my new teacher will become a familiar and kind person.",
+       pose:'happy', mood:'happy', prop:'star'}
+    ]
+  },
+  firedrill: {
+    title:{ur:"فائر ڈرل", sd:"فائر ڊرل", en:"Fire Drill"},
+    sub:{ur:"سکول میں ایک مشق", sd:"اسڪول ۾ هڪ مشق", en:"A practice at school"},
+    steps:[
+      {ur:"کبھی کبھی سکول میں ایک اونچی گھنٹی بجتی ہے — اسے فائر ڈرل کہتے ہیں۔ یہ صرف ایک مشق ہے، تاکہ سب لوگ محفوظ رہنا سیکھ سکیں۔",
+       sd:"ڪڏهن ڪڏهن اسڪول ۾ هڪ تيز گھنٽي وڄندي آهي — ان کي فائر ڊرل چئبو آهي۔ اهو رڳو هڪ مشق آهي، ته جيئن سڀ ماڻهو محفوظ رهڻ سکن۔",
+       en:"Sometimes a loud bell rings at school — it's called a fire drill. It's just practice, so everyone learns to stay safe.",
+       pose:'neutral', mood:'neutral', prop:'bell'},
+      {ur:"گھنٹی تیز اور اچانک لگ سکتی ہے۔ چاہیں تو ہاتھوں سے کان ہلکے سے بند کر سکتے ہیں۔",
+       sd:"گھنٽي تيز ۽ اوچتو لڳي سگهي ٿي۔ گھربل هجي ته هٿن سان ڪن هلڪو بند ڪري سگهجي ٿو۔",
+       en:"The bell can sound loud and sudden. I can gently cover my ears with my hands if I want to.",
+       pose:'worried', mood:'worried', prop:'none'},
+      {ur:"سب بچے قطار میں لگ کر، پرسکون انداز میں ٹیچر کے پیچھے چلتے ہیں۔",
+       sd:"سڀ ٻار قطار ۾ بيهي، پرسڪون انداز ۾ ٽيچر جي پويان هلندا آهن۔",
+       en:"All the children line up and calmly follow their teacher.",
+       pose:'walking', mood:'neutral', prop:'door'},
+      {ur:"ٹیچر راستہ دکھائیں گے کہ باہر کہاں جانا ہے۔ ان کی بات سننا اور ان کے ساتھ رہنا ضروری ہے۔",
+       sd:"ٽيچر رستو ڏيکاريندا ته ٻاهر ڪيڏانهن وڃڻو آهي۔ سندن ڳالهه ٻڌڻ ۽ سندن سان گڏ رهڻ ضروري آهي۔",
+       en:"The teacher will show us where to go outside. It helps to listen and stay close to them.",
+       pose:'listening', mood:'neutral', prop:'clock'},
+      {ur:"باہر کھڑے ہو کر، گہری سانس لینا — سب لوگ ساتھ ہیں، سب محفوظ ہیں۔",
+       sd:"ٻاهر بيهي، ڊگهو ساهه کڻڻ — سڀ گڏ آهن، سڀ محفوظ آهن۔",
+       en:"Standing outside, taking a deep breath — everyone is together, everyone is safe.",
+       pose:'breathing', mood:'neutral', prop:'check'},
+      {ur:"جب مشق ختم ہو جائے، واپس کلاس میں جانا ہے۔ یہ مشق ہمیں اصل ایمرجنسی میں بھی محفوظ رہنا سکھاتی ہے۔",
+       sd:"جڏهن مشق ختم ٿئي، واپس ڪلاس ۾ وڃڻو آهي۔ هيءَ مشق اسان کي اصل ايمرجنسي ۾ به محفوظ رهڻ سيکاري ٿي۔",
+       en:"Once the drill is over, we go back to class. This practice helps us stay safe in a real emergency too.",
+       pose:'happy', mood:'happy', prop:'badge'}
+    ]
+  }
+};
+
+/* ================= STATE ================= */
+let LANG = 'ur';
+let customStories = [];  // each: {title, lang, steps:[{text,pose,mood,prop}]}
+let currentStory = null; // unified shape used by the viewer: {title, steps:[{text,pose,mood,prop}]}
+let currentPresetKey = null;
+let currentIndex = 0;
+let bigText = false;
+
+function escapeHtml(str){
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+function getLocalizedPreset(key){
+  const p = PRESETS[key];
+  return {
+    title: p.title[LANG],
+    steps: p.steps.map(s => ({text: s[LANG], pose:s.pose, mood:s.mood, prop:s.prop}))
+  };
+}
+
+/* ================= STATIC TEXT ================= */
+function renderStaticText(){
+  const t = T[LANG];
+  document.getElementById('mainTitle').textContent = t.title;
+  document.getElementById('mainSub').textContent = t.subtitle;
+  document.getElementById('backBtnForm').textContent = t.backBtn;
+  document.getElementById('backBtnViewer').textContent = t.backBtn;
+  document.getElementById('formTitle').textContent = t.formTitle;
+  document.getElementById('scenarioLabel').textContent = t.scenarioLabel;
+  document.getElementById('scenarioInput').placeholder = t.scenarioPlaceholder;
+  document.getElementById('scenarioHint').textContent = t.scenarioHint;
+  document.getElementById('nameLabel').textContent = t.nameLabel;
+  document.getElementById('nameInput').placeholder = t.namePlaceholder;
+  document.getElementById('genLangHint').textContent = t.genLangHint;
+  document.getElementById('genBtn').textContent = t.genBtn;
+  document.getElementById('statusText').textContent = t.statusText;
+  document.getElementById('errorBox').textContent = t.errorText;
+  document.getElementById('footerText').textContent = t.footerText;
+  updateTextSizeLabel();
+
+  const rtl = (LANG === 'ur' || LANG === 'sd');
+  const inputDir = rtl ? 'rtl' : 'ltr';
+  const inputAlign = rtl ? 'right' : 'left';
+  ['scenarioInput','nameInput'].forEach(id=>{
+    const el = document.getElementById(id);
+    el.style.direction = inputDir;
+    el.style.textAlign = inputAlign;
+  });
+
+  document.documentElement.setAttribute('lang', LANG);
+}
+
+function updateTextSizeLabel(){
+  const t = T[LANG];
+  const btn = document.getElementById('textSizeBtn');
+  btn.textContent = bigText ? t.textSizeOn : t.textSizeOff;
+}
+
+/* ================= LANGUAGE SWITCH ================= */
+async function setUiLang(lang){
+  if(lang === LANG) return;
+  LANG = lang;
+
+  document.getElementById('langHighlight').style.transform = `translateX(${LANG_INDEX[lang]*100}%)`;
+  document.getElementById('langOptUr').classList.toggle('selected', lang==='ur');
+  document.getElementById('langOptSd').classList.toggle('selected', lang==='sd');
+  document.getElementById('langOptEn').classList.toggle('selected', lang==='en');
+
+  renderStaticText();
+  saveUiLang();
+
+  if(document.getElementById('viewer').classList.contains('active')){
+    if(currentPresetKey){
+      currentStory = getLocalizedPreset(currentPresetKey);
+      document.getElementById('viewerTitle').textContent = currentStory.title;
+      renderStep();
+    }
+    // custom stories keep the language they were generated in — only chrome updates.
+  } else if(!document.getElementById('gridView').classList.contains('hidden')){
+    renderGrid();
+  }
+}
+
+async function saveUiLang(){
+  try{
+    if(window.storage){
+      await window.storage.set('ui-lang', LANG, false);
+    }
+  }catch(e){ /* ignore */ }
+}
+async function loadUiLang(){
+  try{
+    if(window.storage){
+      const res = await window.storage.get('ui-lang', false);
+      if(res && res.value && LANG_INDEX.hasOwnProperty(res.value)){ LANG = res.value; }
+    }
+  }catch(e){ /* default stays ur */ }
+}
+
+/* ================= RENDER GRID ================= */
+function renderGrid(){
+  const t = T[LANG];
+  const grid = document.getElementById('storyGrid');
+  grid.innerHTML = '';
+
+  Object.keys(PRESETS).forEach(key=>{
+    const s = getLocalizedPreset(key);
+    const card = makeCard(s.title, PRESETS[key].sub[LANG], s.steps.length, characterSVG(s.steps[0]), ()=>openPreset(key));
+    grid.appendChild(card);
+  });
+
+  customStories.forEach((s, idx)=>{
+    const card = makeCard(s.title, t.yourCustomStory, s.steps.length, characterSVG(s.steps[0]), ()=>openCustom(s));
+    const pill = document.createElement('div');
+    pill.className = 'lang-pill';
+    pill.textContent = (s.lang || 'ur').toUpperCase();
+    card.appendChild(pill);
+    const del = document.createElement('button');
+    del.className='del-btn'; del.innerHTML='×';
+    del.onclick=(e)=>{e.stopPropagation(); deleteCustom(idx);};
+    card.appendChild(del);
+    grid.appendChild(card);
+  });
+
+  const addCard = document.createElement('div');
+  addCard.className='story-card custom-new';
+  addCard.onclick = showForm;
+  addCard.innerHTML = `
+    <div class="thumb" style="background:#FAF7FC;">
+      <svg width="90" height="90" viewBox="0 0 90 90">
+        <circle cx="45" cy="45" r="38" fill="#EFE7F5"/>
+        <line x1="45" y1="28" x2="45" y2="62" stroke="#8A6FA3" stroke-width="6" stroke-linecap="round"/>
+        <line x1="28" y1="45" x2="62" y2="45" stroke="#8A6FA3" stroke-width="6" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <h3 dir="auto">${escapeHtml(t.addTitle)}</h3>
+    <div class="sub" dir="auto">${escapeHtml(t.addSub)}</div>
+    <div class="steps-tag">${escapeHtml(t.addTag)}</div>
+  `;
+  grid.appendChild(addCard);
+}
+
+function makeCard(title, sub, stepCount, sceneHTML, onClick){
+  const t = T[LANG];
+  const card = document.createElement('div');
+  card.className='story-card';
+  card.onclick = onClick;
+  card.innerHTML = `
+    <div class="thumb">${sceneHTML}</div>
+    <h3 dir="auto">${escapeHtml(title)}</h3>
+    <div class="sub" dir="auto">${escapeHtml(sub)}</div>
+    <div class="steps-tag">${stepCount} ${escapeHtml(t.pagesWord)}</div>
+  `;
+  return card;
+}
+
+/* ================= VIEWS ================= */
+function showGrid(){
+  document.getElementById('gridView').classList.remove('hidden');
+  document.getElementById('formView').classList.remove('active');
+  document.getElementById('viewer').classList.remove('active');
+  renderGrid();
+}
+function showForm(){
+  document.getElementById('gridView').classList.add('hidden');
+  document.getElementById('formView').classList.add('active');
+  document.getElementById('viewer').classList.remove('active');
+  document.getElementById('errorBox').classList.remove('show');
+}
+function openPreset(key){
+  currentPresetKey = key;
+  currentIndex = 0;
+  currentStory = getLocalizedPreset(key);
+  openViewer();
+}
+function openCustom(story){
+  currentPresetKey = null;
+  currentIndex = 0;
+  currentStory = story;
+  openViewer();
+}
+function openViewer(){
+  document.getElementById('gridView').classList.add('hidden');
+  document.getElementById('formView').classList.remove('active');
+  document.getElementById('viewer').classList.add('active');
+  document.getElementById('viewerTitle').textContent = currentStory.title;
+  renderStep();
+}
+
+/* ================= STORY PLAYER ================= */
+function renderStep(){
+  const step = currentStory.steps[currentIndex];
+  document.getElementById('sceneHolder').innerHTML = characterSVG(step);
+  const txt = document.getElementById('storyText');
+  txt.textContent = step.text;
+  txt.className = 'story-text' + (bigText ? ' big' : '');
+
+  const dots = document.getElementById('dots');
+  dots.innerHTML = '';
+  currentStory.steps.forEach((_,i)=>{
+    const d = document.createElement('div');
+    d.className = 'dot' + (i===currentIndex ? ' active' : '');
+    d.onclick = ()=>{currentIndex=i; renderStep();};
+    dots.appendChild(d);
+  });
+
+  document.getElementById('prevBtn').disabled = currentIndex===0;
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.disabled = false;
+  if(currentIndex === currentStory.steps.length-1){
+    nextBtn.innerHTML = '✓';
+    nextBtn.classList.add('done');
+    nextBtn.onclick = ()=>showGrid();
+  } else {
+    nextBtn.innerHTML = '›';
+    nextBtn.classList.remove('done');
+    nextBtn.onclick = ()=>stepStory(1);
+  }
+}
+function stepStory(dir){
+  currentIndex = Math.max(0, Math.min(currentStory.steps.length-1, currentIndex+dir));
+  renderStep();
+}
+function toggleTextSize(){
+  bigText = !bigText;
+  document.getElementById('textSizeBtn').classList.toggle('active', bigText);
+  renderStep();
+}
+
+/* ================= CUSTOM GENERATION ================= */
+const VALID_POSES = Object.keys(POSES);
+const VALID_PROPS = ['clock','chair','door','bell','book','heart','badge','star','check','none'];
+
+async function generateStory(){
+  const t = T[LANG];
+  const scenario = document.getElementById('scenarioInput').value.trim();
+  const name = document.getElementById('nameInput').value.trim();
+  if(!scenario){
+    alert(t.emptyScenarioAlert);
+    return;
+  }
+  const btn = document.getElementById('genBtn');
+  const status = document.getElementById('statusBox');
+  const errBox = document.getElementById('errorBox');
+  btn.disabled = true;
+  status.classList.add('show');
+  errBox.classList.remove('show');
+
+  let languageInstruction;
+  if(LANG === 'ur'){
+    languageInstruction = `Write the story text in proper Urdu, using actual Urdu script (اردو رسم الخط, Arabic-based Nastaliq script) — for example "آج ڈاکٹر کے پاس جانا ہے". Do NOT write in Roman/Latin transliteration, and do NOT use Hindi/Devanagari script. Use natural, everyday Urdu vocabulary a parent in Pakistan would use when talking to their child. Keep grammar simple and correct.
+- IMPORTANT: where possible, prefer gender-neutral phrasing (e.g. using the standard generic/default verb form for unspecified gender, as is normal in Urdu) so the story reads naturally for a child of any gender.
+- Also provide the "title" field in Urdu script.`;
+  } else if(LANG === 'sd'){
+    languageInstruction = `Write the story text in proper Sindhi, using actual Sindhi script (سنڌي, Perso-Arabic based Sindhi alphabet, including Sindhi-specific letters like ٻ ڄ ٺ ٽ ڏ ڳ ک) — for example "اڄ ڊاڪٽر وٽ وڃڻو آهي". Do NOT write in Roman/Latin transliteration, and do NOT use Urdu or Hindi vocabulary/grammar — use genuine Sindhi words and Sindhi sentence structure. Keep grammar simple and correct.
+- IMPORTANT: where possible, prefer gender-neutral phrasing so the story reads naturally for a child of any gender.
+- Also provide the "title" field in Sindhi script.`;
+  } else {
+    languageInstruction = `Write the story text in simple, warm English suitable for a young child.`;
+  }
+
+  const systemPrompt = `You write short "Social Stories" for young children (the Carol Gray method) to help them understand a new or unfamiliar scenario. Rules:
+- Output ONLY valid JSON, no markdown fences, no preamble, no commentary.
+- Schema: {"title": string, "steps": [{"text": string, "pose": string, "mood": string, "prop": string}]}
+- Exactly 5 to 6 steps.
+- "pose" must be one of: ${VALID_POSES.join(', ')}
+- "mood" must be one of: neutral, happy, worried
+- "prop" must be one of: ${VALID_PROPS.join(', ')}
+- The LAST step must have mood "happy" and be a warm, reassuring ending.
+- One step in the middle should gently acknowledge a nervous/worried feeling (mood "worried") and then the next step should offer a simple calming coping strategy (like deep breathing), pose "breathing".
+- Each step's text must be 1-2 short, simple, calm sentences appropriate for a young child.
+- ${languageInstruction}
+- ${name ? `The child's name is "${name}" — you may address them warmly once or twice, but do not overuse it.` : `Do not use a specific name; keep it general ("tum", "you", "the child").`}
+- Tone: calm, validating, non-scary, never dismissive of feelings, ends on genuine encouragement.
+- The "title" should be a short 2-5 word title for this scenario in the same language.`;
+
+  const userPrompt = `Scenario: ${scenario}`;
+
+  try{
+    const response = await fetch("/api/generate-story", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
+        system: systemPrompt,
+        messages: [{role:"user", content: userPrompt}]
+      })
+    });
+    const data = await response.json();
+    if(data.error){
+      throw new Error('API error: ' + (data.error.message || JSON.stringify(data.error)));
+    }
+    if(data.stop_reason === 'max_tokens'){
+      throw new Error('Response was cut off (hit max_tokens) before valid JSON completed.');
+    }
+    const textBlocks = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
+    if(!textBlocks){
+      throw new Error('No text content in API response: ' + JSON.stringify(data).slice(0,300));
+    }
+    const cleaned = textBlocks.replace(/```json|```/g,'').trim();
+    let parsed;
+    try{
+      parsed = JSON.parse(cleaned);
+    }catch(parseErr){
+      throw new Error('JSON parse failed. Raw text: ' + cleaned.slice(0,300));
+    }
+
+    const steps = (parsed.steps||[]).slice(0,6).map(s=>({
+      text: String(s.text||'').trim(),
+      pose: VALID_POSES.includes(s.pose) ? s.pose : 'neutral',
+      mood: ['neutral','happy','worried'].includes(s.mood) ? s.mood : 'neutral',
+      prop: VALID_PROPS.includes(s.prop) ? s.prop : 'none'
+    })).filter(s=>s.text.length>0);
+
+    if(steps.length < 3) throw new Error('too few steps');
+
+    const story = { title: String(parsed.title||scenario).trim(), lang: LANG, steps };
+    customStories.push(story);
+    await saveCustomStories();
+
+    document.getElementById('scenarioInput').value='';
+    document.getElementById('nameInput').value='';
+    status.classList.remove('show');
+    btn.disabled = false;
+    openCustom(story);
+
+  } catch(err){
+    console.error('Story generation error:', err);
+    status.classList.remove('show');
+    btn.disabled = false;
+    errBox.textContent = t.errorText + ' (' + err.message + ')';
+    errBox.classList.add('show');
+  }
+}
+
+function deleteCustom(idx){
+  customStories.splice(idx,1);
+  saveCustomStories();
+  renderGrid();
+}
+
+async function saveCustomStories(){
+  try{
+    if(window.storage){
+      await window.storage.set('custom-stories', JSON.stringify(customStories), false);
+    }
+  }catch(e){ console.error('storage save failed', e); }
+}
+async function loadCustomStories(){
+  try{
+    if(window.storage){
+      const res = await window.storage.get('custom-stories', false);
+      if(res && res.value){
+        customStories = JSON.parse(res.value);
+      }
+    }
+  }catch(e){ /* no saved stories yet */ }
+}
+
+/* ================= INIT ================= */
+(async function init(){
+  await loadUiLang();
+  document.getElementById('langHighlight').style.transform = `translateX(${LANG_INDEX[LANG]*100}%)`;
+  document.getElementById('langOptUr').classList.toggle('selected', LANG==='ur');
+  document.getElementById('langOptSd').classList.toggle('selected', LANG==='sd');
+  document.getElementById('langOptEn').classList.toggle('selected', LANG==='en');
+  renderStaticText();
+  await loadCustomStories();
+  renderGrid();
+})();
+</script>
+</body>
+</html>
